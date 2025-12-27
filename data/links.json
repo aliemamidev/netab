@@ -1,0 +1,68 @@
+{
+  "title": "Quick Links",
+  "groups": [
+    {
+      "name": "University",
+      "icon": "🎓",
+      "links": [
+        {
+          "label": "MehrAlborz ERP Dashboard",
+          "note": "University ERP dashboard",
+          "url": "https://erp.mehralborz.ac.ir/Dashboard"
+        },
+        {
+          "label": "MehrAlborz LCMS",
+          "note": "Learning platform (LCMS/Moodle)",
+          "url": "https://lcms.mehralborz.ac.ir/login/index.php"
+        }
+      ]
+    },
+    {
+      "name": "Irancook",
+      "icon": "🍪",
+      "links": [
+        {
+          "label": "IranCookShop Website",
+          "note": "Main store website",
+          "url": "http://irancookshop.com/"
+        },
+        {
+          "label": "Flour Panel",
+          "note": "Internal flour management panel",
+          "url": "https://panel.irancookshop.com/flour"
+        },
+        {
+          "label": "cPanel",
+          "note": "Hosting control panel (cPanel)",
+          "url": "http://cpanel.irancookshop.com/"
+        },
+        {
+          "label": "HostDL",
+          "note": "Hosting services portal",
+          "url": "http://hostdl.com/"
+        },
+        {
+          "label": "Experiments / Dev",
+          "note": "Experimental environment",
+          "url": "https://exp.irancookshop.com/"
+        },
+        {
+          "label": "Stock",
+          "note": "Inventory / stock system",
+          "url": "https://stock.irancookshop.com/"
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "icon": "💳",
+      "links": [
+        {
+          "label": "Zarinpal",
+          "note": "Payment gateway dashboard",
+          "url": "https://www.zarinpal.com/"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Tab</title>
+    <link rel="stylesheet" href="newtab.css" />
+  </head>
+
+  <body>
+    <!-- Background -->
+    <div id="bg">
+      <img id="bgImage" alt="" />
+      <video id="bgVideo" muted autoplay playsinline preload="auto"></video>
+      <div id="shade"></div>
+    </div>
+
+    <!-- Center content -->
+    <main id="center">
+      <div id="card">
+        <div class="topbar">
+          <div id="title" class="title">Quick Links</div>
+          <div class="hint">Click a folder to open its links</div>
+        </div>
+
+        <div id="groups" class="groups"></div>
+      </div>
+    </main>
+
+    <!-- Widgets button -->
+    <button id="widgetsBtn" class="widgets-btn" title="Widgets">🧩 Widgets</button>
+
+    <!-- Widgets modal -->
+    <div id="widgetsModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">Widgets</div>
+          <button id="widgetsClose" class="modal-close" title="Close">✕</button>
+        </div>
+
+        <div class="widgets-grid">
+          <div class="widget-box">
+            <div class="widget-title">Gold Widget</div>
+            <iframe
+              class="widget-frame"
+              src="https://widgets.dastyar.io/fa/melli-gold?theme=dark"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+
+          <div class="widget-box">
+            <div class="widget-title">Price Widget</div>
+            <iframe
+              class="widget-frame"
+              src="https://widgets.dastyar.io/fa/dastyar-price?theme=dark"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-backdrop"></div>
+    </div>
+
+    <script src="newtab.js"></script>
+  </body>
+</html>

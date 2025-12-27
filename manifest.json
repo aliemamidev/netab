@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "New Tab Random Background + Grouped Links",
+  "version": "1.2.0",
+  "description": "New tab: random photo/video each open + grouped links + widgets + favicon cache.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["storage"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://www.google.com; frame-src https://widgets.dastyar.io; connect-src 'self' https://www.google.com;"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["data/*", "media/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
