@@ -13,7 +13,7 @@ const EXT = {
 
 // Favicon cache TTL: 120 hours (5 days)
 const FAVICON_TTL_MS = 120 * 60 * 60 * 1000;
-const FAVICON_MAX_BYTES = 64 * 1024;
+const FAVICON_MAX_BYTES = 256 * 1024;
 
 
 // =====================
@@ -151,17 +151,17 @@ const MediaScanner = (() => {
     let media;
 
     try {
-      media = await scanPackageMedia();
+      media = await loadMediaManifest();
     } catch (e) {
-      console.warn("[media] package scan failed; using data/media.json fallback", e);
+      console.warn("[media] data/media.json failed; scanning packaged media folders", e);
       media = { photos: [], videos: [] };
     }
 
     if (media.photos.length === 0 && media.videos.length === 0) {
       try {
-        media = await loadMediaManifest();
+        media = await scanPackageMedia();
       } catch (e) {
-        console.warn("[media] data/media.json fallback failed", e);
+        console.warn("[media] package scan failed", e);
       }
     }
 
@@ -300,9 +300,11 @@ const Background = (() => {
 
 // =====================
 // Favicon cache (120 hours)
-// Chrome MV3 exposes the browser favicon provider at /_favicon/ when the
-// "favicon" permission is enabled. We show that URL immediately, then cache a
-// same-origin data URL for 120 hours so later new-tab opens do not reload it.
+// Multi-source resolver:
+// 1) cached data URL from chrome.storage.local
+// 2) page-declared icons / root favicon files (cached for 120h)
+// 3) Chrome MV3 /_favicon/ provider
+// 4) external favicon CDNs as last-resort display fallbacks
 // =====================
 const FaviconCache = (() => {
   const PENDING = new Map();
@@ -321,12 +323,24 @@ const FaviconCache = (() => {
     }
   }
 
-  function originKey(pageUrl) {
+  function pageOrigin(pageUrl) {
     try {
       return new URL(normalizePageUrl(pageUrl)).origin;
     } catch {
-      return pageUrl;
+      return "";
     }
+  }
+
+  function pageHostname(pageUrl) {
+    try {
+      return new URL(normalizePageUrl(pageUrl)).hostname;
+    } catch {
+      return "";
+    }
+  }
+
+  function originKey(pageUrl) {
+    return pageOrigin(pageUrl) || pageUrl;
   }
 
   function storageGet(key) {
@@ -339,11 +353,50 @@ const FaviconCache = (() => {
     return new Promise((resolve) => chrome.storage.local.set(obj, resolve));
   }
 
-  function faviconUrl(pageUrl, size = 64) {
+  function chromeFaviconUrl(pageUrl, size = 64) {
     const url = new URL(chrome.runtime.getURL("/_favicon/"));
     url.searchParams.set("pageUrl", normalizePageUrl(pageUrl));
     url.searchParams.set("size", String(size));
     return url.toString();
+  }
+
+  function googleFaviconUrl(pageUrl) {
+    return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(normalizePageUrl(pageUrl))}&sz=64`;
+  }
+
+  function duckDuckGoFaviconUrl(pageUrl) {
+    const host = pageHostname(pageUrl);
+    return host ? `https://icons.duckduckgo.com/ip3/${host}.ico` : "";
+  }
+
+  function rootIconUrls(pageUrl) {
+    const origin = pageOrigin(pageUrl);
+    if (!origin) return [];
+
+    return [
+      `${origin}/favicon.ico`,
+      `${origin}/favicon.png`,
+      `${origin}/apple-touch-icon.png`,
+      `${origin}/apple-touch-icon-precomposed.png`,
+    ];
+  }
+
+  function emergencyFallbackDataUrl(pageUrl) {
+    const host = pageHostname(pageUrl) || "?";
+    const label = (host.replace(/^www\./, "").charAt(0) || "?").toUpperCase();
+    const hue = [...host].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 360;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="hsl(${hue} 70% 42%)"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="white">${label}</text></svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  function displayFallbackUrls(pageUrl) {
+    return [
+      chromeFaviconUrl(pageUrl),
+      ...rootIconUrls(pageUrl),
+      duckDuckGoFaviconUrl(pageUrl),
+      googleFaviconUrl(pageUrl),
+      emergencyFallbackDataUrl(pageUrl),
+    ].filter(Boolean);
   }
 
   function blobToDataUrl(blob) {
@@ -355,35 +408,127 @@ const FaviconCache = (() => {
     });
   }
 
-  async function fetchFaviconDataUrl(pageUrl) {
-    const res = await fetch(faviconUrl(pageUrl), {
+  async function fetchBlob(url, options = {}) {
+    const res = await fetch(url, {
       cache: "reload",
-      credentials: "same-origin",
+      credentials: "omit",
+      redirect: "follow",
+      ...options,
     });
 
-    if (!res.ok) throw new Error(`Chrome favicon fetch failed (${res.status})`);
+    if (!res.ok) throw new Error(`Favicon candidate failed (${res.status})`);
 
     const blob = await res.blob();
+    const contentType = blob.type || res.headers.get("content-type") || "";
     if (!blob || blob.size === 0) throw new Error("Empty favicon response");
     if (blob.size > FAVICON_MAX_BYTES) throw new Error("Favicon response is too large");
+    const lowerType = contentType.toLowerCase();
+    const knownImageType =
+      lowerType.startsWith("image/") ||
+      lowerType.includes("octet-stream") ||
+      lowerType.includes("svg") ||
+      lowerType.includes("xml");
 
-    return blobToDataUrl(blob);
-  }
-
-  async function getCachedDataUrl(pageUrl) {
-    const key = `favicon:${originKey(pageUrl)}`;
-    const now = Date.now();
-    const cached = await storageGet(key);
-
-    if (cached?.dataUrl && cached?.expiresAt && cached.expiresAt > now) {
-      return cached.dataUrl;
+    if (contentType && !knownImageType) {
+      throw new Error(`Not an image favicon response (${contentType})`);
     }
 
+    return blob;
+  }
+
+  async function fetchDataUrl(url, options) {
+    return blobToDataUrl(await fetchBlob(url, options));
+  }
+
+  function scoreIconLink(linkEl) {
+    const rel = (linkEl.getAttribute("rel") || "").toLowerCase();
+    const sizes = (linkEl.getAttribute("sizes") || "").toLowerCase();
+    const type = (linkEl.getAttribute("type") || "").toLowerCase();
+    let score = 0;
+
+    if (rel.includes("icon")) score += 10;
+    if (rel.includes("apple-touch-icon")) score += 8;
+    if (rel.includes("shortcut")) score += 2;
+    if (type.includes("png")) score += 4;
+    if (type.includes("svg")) score += 3;
+    if (type.includes("ico") || type.includes("icon")) score += 2;
+
+    const match = sizes.match(/(\d+)x\d+/);
+    if (match) score += Math.min(Number(match[1]) / 16, 8);
+    if (sizes === "any") score += 6;
+
+    return score;
+  }
+
+  async function pageDeclaredIconUrls(pageUrl) {
+    const normalized = normalizePageUrl(pageUrl);
+    const res = await fetch(normalized, {
+      cache: "reload",
+      credentials: "omit",
+      redirect: "follow",
+    });
+
+    if (!res.ok) throw new Error(`Page fetch failed (${res.status})`);
+
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const links = [...doc.querySelectorAll('link[rel][href]')]
+      .filter((link) => (link.getAttribute("rel") || "").toLowerCase().includes("icon"))
+      .sort((a, b) => scoreIconLink(b) - scoreIconLink(a));
+
+    return links
+      .map((link) => {
+        try {
+          return new URL(link.getAttribute("href"), normalized).href;
+        } catch {
+          return "";
+        }
+      })
+      .filter(Boolean);
+  }
+
+  async function candidateUrls(pageUrl) {
+    const urls = [];
+
+    try {
+      urls.push(...(await pageDeclaredIconUrls(pageUrl)));
+    } catch (e) {
+      console.warn("[favicon] page icon discovery failed", pageUrl, e);
+    }
+
+    urls.push(...rootIconUrls(pageUrl));
+    urls.push(chromeFaviconUrl(pageUrl));
+    urls.push(duckDuckGoFaviconUrl(pageUrl));
+    urls.push(googleFaviconUrl(pageUrl));
+
+    return [...new Set(urls.filter(Boolean))];
+  }
+
+  async function resolveFaviconDataUrl(pageUrl) {
+    const candidates = await candidateUrls(pageUrl);
+    let lastError = null;
+
+    for (const url of candidates) {
+      try {
+        const options = url.startsWith(chrome.runtime.getURL("/"))
+          ? { credentials: "same-origin" }
+          : undefined;
+        return await fetchDataUrl(url, options);
+      } catch (e) {
+        lastError = e;
+        console.warn("[favicon] candidate failed", url, e);
+      }
+    }
+
+    throw lastError || new Error("No favicon candidates available");
+  }
+
+  async function refreshCache(pageUrl, key) {
     if (!PENDING.has(key)) {
       PENDING.set(
         key,
         (async () => {
-          const dataUrl = await fetchFaviconDataUrl(pageUrl);
+          const dataUrl = await resolveFaviconDataUrl(pageUrl);
           await storageSet({
             [key]: {
               dataUrl,
@@ -396,36 +541,52 @@ const FaviconCache = (() => {
       );
     }
 
-    try {
-      return await PENDING.get(key);
-    } catch (e) {
-      console.warn("[favicon] cache refresh failed; using Chrome favicon URL", pageUrl, e);
-      return cached?.dataUrl || "";
-    }
+    return PENDING.get(key);
   }
 
-  function useChromeFavicon(imgEl, pageUrl) {
-    imgEl.onerror = () => {
-      imgEl.removeAttribute("src");
-      imgEl.classList.add("favicon-missing");
+  function useDisplayFallbacks(imgEl, pageUrl) {
+    const urls = displayFallbackUrls(pageUrl);
+    let index = 0;
+
+    const loadNext = () => {
+      const next = urls[index++];
+      if (!next) {
+        imgEl.removeAttribute("src");
+        imgEl.classList.add("favicon-missing");
+        return;
+      }
+      imgEl.src = next;
     };
-    imgEl.src = faviconUrl(pageUrl);
+
+    imgEl.onerror = loadNext;
+    loadNext();
   }
 
   async function setImg(imgEl, pageUrl) {
+    const key = `favicon:${originKey(pageUrl)}`;
+    const now = Date.now();
+    const cached = await storageGet(key);
+
     imgEl.classList.remove("favicon-missing");
 
-    // Show the real site favicon immediately; cached data replaces it when ready.
-    useChromeFavicon(imgEl, pageUrl);
+    if (cached?.dataUrl) {
+      imgEl.onerror = () => useDisplayFallbacks(imgEl, pageUrl);
+      imgEl.src = cached.dataUrl;
+    } else {
+      // Show something immediately while the persistent 120-hour cache is built.
+      useDisplayFallbacks(imgEl, pageUrl);
+    }
+
+    if (cached?.dataUrl && cached?.expiresAt && cached.expiresAt > now) return;
 
     try {
-      const dataUrl = await getCachedDataUrl(pageUrl);
+      const dataUrl = await refreshCache(pageUrl, key);
       if (dataUrl) {
-        imgEl.onerror = () => useChromeFavicon(imgEl, pageUrl);
+        imgEl.onerror = () => useDisplayFallbacks(imgEl, pageUrl);
         imgEl.src = dataUrl;
       }
     } catch (e) {
-      console.warn("[favicon] cache lookup failed; keeping Chrome favicon URL", pageUrl, e);
+      console.warn("[favicon] all cache refresh strategies failed", pageUrl, e);
     }
   }
 
