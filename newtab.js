@@ -11,12 +11,9 @@ const EXT = {
   videos: new Set([".mp4", ".webm", ".ogg"]),
 };
 
-// Favicon cache TTL: 30 days
-const FAVICON_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-// Use Google favicon service (recommended for stable results)
-// If you prefer zero external calls, set USE_GOOGLE_FAVICON = false
-const USE_GOOGLE_FAVICON = true;
+// Favicon cache TTL: 120 hours (5 days)
+const FAVICON_TTL_MS = 120 * 60 * 60 * 1000;
+const FAVICON_MAX_BYTES = 64 * 1024;
 
 
 // =====================
@@ -270,14 +267,30 @@ const Background = (() => {
 
 
 // =====================
-// Favicon "cache" (30 days) - CORS-safe
-// We avoid fetch+blob (often blocked), and use <img src> which is allowed.
-// We store only a timestamp per origin, and version the URL with ?v= to refresh every 30 days.
+// Favicon cache (120 hours) - CORS-safe display with persistent data URLs.
+// We store successful favicon responses in chrome.storage.local so each icon is
+// reused for 120 hours instead of being downloaded on every new-tab open.
 // =====================
 const FaviconCache = (() => {
+  const PENDING = new Map();
+
+  function normalizePageUrl(pageUrl) {
+    try {
+      const url = new URL(pageUrl);
+      if (!url.protocol || !url.hostname) return pageUrl;
+      return url.href;
+    } catch {
+      try {
+        return new URL(`https://${pageUrl}`).href;
+      } catch {
+        return pageUrl;
+      }
+    }
+  }
+
   function originKey(pageUrl) {
     try {
-      return new URL(pageUrl).origin;
+      return new URL(normalizePageUrl(pageUrl)).origin;
     } catch {
       return pageUrl;
     }
@@ -299,41 +312,119 @@ const FaviconCache = (() => {
 
   function directFaviconIco(pageUrl) {
     try {
-      const u = new URL(pageUrl);
+      const u = new URL(normalizePageUrl(pageUrl));
       return `${u.origin}/favicon.ico`;
     } catch {
       return "";
     }
   }
 
-  async function setImg(imgEl, pageUrl) {
-    const origin = originKey(pageUrl);
-    const key = `favts:${origin}`;
+  function versionFor(ts) {
+    return Math.floor(ts / FAVICON_TTL_MS);
+  }
 
+  function fallbackUrls(pageUrl) {
+    const normalized = normalizePageUrl(pageUrl);
+    const version = versionFor(Date.now());
+    const urls = [`${googleFaviconUrl(normalized)}&v=${version}`];
+    const direct = directFaviconIco(normalized);
+    if (direct) urls.push(`${direct}?v=${version}`);
+    return urls;
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error("Failed to read favicon"));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function fetchDataUrl(pageUrl) {
+    const normalized = normalizePageUrl(pageUrl);
+    const res = await fetch(googleFaviconUrl(normalized), {
+      cache: "reload",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+    });
+
+    if (!res.ok) throw new Error(`Favicon fetch failed (${res.status})`);
+
+    const blob = await res.blob();
+    if (!blob || blob.size === 0) throw new Error("Empty favicon response");
+    if (blob.size > FAVICON_MAX_BYTES) throw new Error("Favicon response is too large");
+
+    return blobToDataUrl(blob);
+  }
+
+  async function getCachedDataUrl(pageUrl) {
+    const key = `favicon:${originKey(pageUrl)}`;
     const now = Date.now();
-    const entry = await storageGet(key);
-    const ts = entry?.ts || 0;
+    const cached = await storageGet(key);
 
-    // Every 30 days bump version -> forces browser to re-fetch once, otherwise browser cache is used
-    const version = Math.floor((now - ts) / FAVICON_TTL_MS);
+    if (cached?.dataUrl && cached?.expiresAt && cached.expiresAt > now) {
+      return cached.dataUrl;
+    }
 
-    // Primary: Google favicon service (usually best coverage)
-    const primary = googleFaviconUrl(pageUrl);
-    const src = `${primary}&v=${version}`;
+    if (!PENDING.has(key)) {
+      PENDING.set(
+        key,
+        (async () => {
+          const dataUrl = await fetchDataUrl(pageUrl);
+          await storageSet({
+            [key]: {
+              dataUrl,
+              cachedAt: Date.now(),
+              expiresAt: Date.now() + FAVICON_TTL_MS,
+            },
+          });
+          return dataUrl;
+        })().finally(() => PENDING.delete(key))
+      );
+    }
 
-    imgEl.src = src;
+    try {
+      return await PENDING.get(key);
+    } catch (e) {
+      console.warn("[favicon] cache refresh failed; using browser-cache fallback", pageUrl, e);
+      return cached?.dataUrl || "";
+    }
+  }
 
-    imgEl.onerror = () => {
-      // fallback: site favicon.ico
-      const fb = directFaviconIco(pageUrl);
-      if (fb) imgEl.src = `${fb}?v=${version}`;
-      else imgEl.removeAttribute("src");
+  function useExternalFallback(imgEl, pageUrl) {
+    const urls = fallbackUrls(pageUrl);
+    let index = 0;
+
+    const loadNext = () => {
+      const next = urls[index++];
+      if (!next) {
+        imgEl.removeAttribute("src");
+        imgEl.classList.add("favicon-missing");
+        return;
+      }
+      imgEl.src = next;
     };
 
-    // Update timestamp only when TTL passed (so v changes next time)
-    if (!ts || now - ts > FAVICON_TTL_MS) {
-      await storageSet({ [key]: { ts: now } });
+    imgEl.onerror = loadNext;
+    loadNext();
+  }
+
+  async function setImg(imgEl, pageUrl) {
+    imgEl.classList.remove("favicon-missing");
+
+    try {
+      const dataUrl = await getCachedDataUrl(pageUrl);
+      if (dataUrl) {
+        imgEl.onerror = () => useExternalFallback(imgEl, pageUrl);
+        imgEl.src = dataUrl;
+        return;
+      }
+    } catch (e) {
+      console.warn("[favicon] cache lookup failed; using browser-cache fallback", pageUrl, e);
     }
+
+    useExternalFallback(imgEl, pageUrl);
   }
 
   return { setImg };
@@ -416,10 +507,8 @@ const LinksUI = (() => {
         fav.loading = "lazy";
         fav.referrerPolicy = "no-referrer";
 
-        // Cached favicon (30 days)
+        // Cached favicon (120 hours)
         FaviconCache.setImg(fav, item.url);
-
-        fav.onerror = () => fav.removeAttribute("src");
 
         const text = document.createElement("div");
         text.className = "link-text";

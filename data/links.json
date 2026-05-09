@@ -18,38 +18,38 @@
       ]
     },
     {
-      "name": "Irancook",
-      "icon": "🍪",
+      "name": "Rouhi",
+      "icon": "🍽️",
       "links": [
         {
-          "label": "IranCookShop Website",
-          "note": "Main store website",
-          "url": "http://irancookshop.com/"
+          "label": "Rouhi Website",
+          "note": "Main Rouhi website",
+          "url": "https://rouhi.ir/"
         },
         {
-          "label": "Flour Panel",
-          "note": "Internal flour management panel",
-          "url": "https://panel.irancookshop.com/flour"
+          "label": "Database Admin",
+          "note": "Database management panel",
+          "url": "https://pma.matinyarco.cloud/"
         },
         {
-          "label": "cPanel",
-          "note": "Hosting control panel (cPanel)",
-          "url": "http://cpanel.irancookshop.com/"
+          "label": "Rouhsaz Stage",
+          "note": "Staging environment for Rouhsaz",
+          "url": "https://stage.rouhsaz.b2b.rouhi.ir/"
         },
         {
-          "label": "HostDL",
-          "note": "Hosting services portal",
-          "url": "http://hostdl.com/"
+          "label": "Rouhsaz Demo",
+          "note": "Demo environment for Rouhsaz",
+          "url": "https://demo.rouhsaz.b2b.rouhi.ir/"
         },
         {
-          "label": "Experiments / Dev",
-          "note": "Experimental environment",
-          "url": "https://exp.irancookshop.com/"
+          "label": "Rouhsaz Main",
+          "note": "Production Rouhsaz B2B",
+          "url": "https://rouhsaz.b2b.rouhi.ir/"
         },
         {
-          "label": "Stock",
-          "note": "Inventory / stock system",
-          "url": "https://stock.irancookshop.com/"
+          "label": "Rouhi Chat",
+          "note": "Mattermost team chat",
+          "url": "https://chat.rouhi.ir/"
         }
       ]
     },
