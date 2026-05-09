@@ -124,23 +124,55 @@ const MediaScanner = (() => {
     return out;
   }
 
-  async function scanOnce() {
+  async function loadMediaManifest() {
+    const res = await fetch(extUrl("data/media.json"), { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load data/media.json (${res.status})`);
+
+    const data = await res.json();
+    return {
+      photos: Array.isArray(data.photos) ? data.photos : [],
+      videos: Array.isArray(data.videos) ? data.videos : [],
+    };
+  }
+
+  async function scanPackageMedia() {
     const root = await getPackageRoot();
 
     const photosDir = await getDirectory(root, MEDIA_DIRS.photos);
     const videosDir = await getDirectory(root, MEDIA_DIRS.videos);
 
-    const photos = photosDir ? await walkDir(photosDir, MEDIA_DIRS.photos, EXT.photos) : [];
-    const videos = videosDir ? await walkDir(videosDir, MEDIA_DIRS.videos, EXT.videos) : [];
+    return {
+      photos: photosDir ? await walkDir(photosDir, MEDIA_DIRS.photos, EXT.photos) : [],
+      videos: videosDir ? await walkDir(videosDir, MEDIA_DIRS.videos, EXT.videos) : [],
+    };
+  }
+
+  async function scanOnce() {
+    let media;
+
+    try {
+      media = await scanPackageMedia();
+    } catch (e) {
+      console.warn("[media] package scan failed; using data/media.json fallback", e);
+      media = { photos: [], videos: [] };
+    }
+
+    if (media.photos.length === 0 && media.videos.length === 0) {
+      try {
+        media = await loadMediaManifest();
+      } catch (e) {
+        console.warn("[media] data/media.json fallback failed", e);
+      }
+    }
 
     // stable ordering helps debugging
-    photos.sort();
-    videos.sort();
+    media.photos.sort();
+    media.videos.sort();
 
-    console.log("[media] photos:", photos.length, photos);
-    console.log("[media] videos:", videos.length, videos);
+    console.log("[media] photos:", media.photos.length, media.photos);
+    console.log("[media] videos:", media.videos.length, media.videos);
 
-    return { photos, videos };
+    return media;
   }
 
   // Cache in-memory (per tab) so we don’t traverse filesystem multiple times
@@ -267,9 +299,10 @@ const Background = (() => {
 
 
 // =====================
-// Favicon cache (120 hours) - CORS-safe display with persistent data URLs.
-// We store successful favicon responses in chrome.storage.local so each icon is
-// reused for 120 hours instead of being downloaded on every new-tab open.
+// Favicon cache (120 hours)
+// Chrome MV3 exposes the browser favicon provider at /_favicon/ when the
+// "favicon" permission is enabled. We show that URL immediately, then cache a
+// same-origin data URL for 120 hours so later new-tab opens do not reload it.
 // =====================
 const FaviconCache = (() => {
   const PENDING = new Map();
@@ -306,30 +339,11 @@ const FaviconCache = (() => {
     return new Promise((resolve) => chrome.storage.local.set(obj, resolve));
   }
 
-  function googleFaviconUrl(pageUrl) {
-    return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(pageUrl)}&sz=64`;
-  }
-
-  function directFaviconIco(pageUrl) {
-    try {
-      const u = new URL(normalizePageUrl(pageUrl));
-      return `${u.origin}/favicon.ico`;
-    } catch {
-      return "";
-    }
-  }
-
-  function versionFor(ts) {
-    return Math.floor(ts / FAVICON_TTL_MS);
-  }
-
-  function fallbackUrls(pageUrl) {
-    const normalized = normalizePageUrl(pageUrl);
-    const version = versionFor(Date.now());
-    const urls = [`${googleFaviconUrl(normalized)}&v=${version}`];
-    const direct = directFaviconIco(normalized);
-    if (direct) urls.push(`${direct}?v=${version}`);
-    return urls;
+  function faviconUrl(pageUrl, size = 64) {
+    const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    url.searchParams.set("pageUrl", normalizePageUrl(pageUrl));
+    url.searchParams.set("size", String(size));
+    return url.toString();
   }
 
   function blobToDataUrl(blob) {
@@ -341,15 +355,13 @@ const FaviconCache = (() => {
     });
   }
 
-  async function fetchDataUrl(pageUrl) {
-    const normalized = normalizePageUrl(pageUrl);
-    const res = await fetch(googleFaviconUrl(normalized), {
+  async function fetchFaviconDataUrl(pageUrl) {
+    const res = await fetch(faviconUrl(pageUrl), {
       cache: "reload",
-      credentials: "omit",
-      referrerPolicy: "no-referrer",
+      credentials: "same-origin",
     });
 
-    if (!res.ok) throw new Error(`Favicon fetch failed (${res.status})`);
+    if (!res.ok) throw new Error(`Chrome favicon fetch failed (${res.status})`);
 
     const blob = await res.blob();
     if (!blob || blob.size === 0) throw new Error("Empty favicon response");
@@ -371,7 +383,7 @@ const FaviconCache = (() => {
       PENDING.set(
         key,
         (async () => {
-          const dataUrl = await fetchDataUrl(pageUrl);
+          const dataUrl = await fetchFaviconDataUrl(pageUrl);
           await storageSet({
             [key]: {
               dataUrl,
@@ -387,44 +399,34 @@ const FaviconCache = (() => {
     try {
       return await PENDING.get(key);
     } catch (e) {
-      console.warn("[favicon] cache refresh failed; using browser-cache fallback", pageUrl, e);
+      console.warn("[favicon] cache refresh failed; using Chrome favicon URL", pageUrl, e);
       return cached?.dataUrl || "";
     }
   }
 
-  function useExternalFallback(imgEl, pageUrl) {
-    const urls = fallbackUrls(pageUrl);
-    let index = 0;
-
-    const loadNext = () => {
-      const next = urls[index++];
-      if (!next) {
-        imgEl.removeAttribute("src");
-        imgEl.classList.add("favicon-missing");
-        return;
-      }
-      imgEl.src = next;
+  function useChromeFavicon(imgEl, pageUrl) {
+    imgEl.onerror = () => {
+      imgEl.removeAttribute("src");
+      imgEl.classList.add("favicon-missing");
     };
-
-    imgEl.onerror = loadNext;
-    loadNext();
+    imgEl.src = faviconUrl(pageUrl);
   }
 
   async function setImg(imgEl, pageUrl) {
     imgEl.classList.remove("favicon-missing");
 
+    // Show the real site favicon immediately; cached data replaces it when ready.
+    useChromeFavicon(imgEl, pageUrl);
+
     try {
       const dataUrl = await getCachedDataUrl(pageUrl);
       if (dataUrl) {
-        imgEl.onerror = () => useExternalFallback(imgEl, pageUrl);
+        imgEl.onerror = () => useChromeFavicon(imgEl, pageUrl);
         imgEl.src = dataUrl;
-        return;
       }
     } catch (e) {
-      console.warn("[favicon] cache lookup failed; using browser-cache fallback", pageUrl, e);
+      console.warn("[favicon] cache lookup failed; keeping Chrome favicon URL", pageUrl, e);
     }
-
-    useExternalFallback(imgEl, pageUrl);
   }
 
   return { setImg };
