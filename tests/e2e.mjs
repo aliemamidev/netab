@@ -32,6 +32,7 @@ const SCREENS = process.argv.includes("--screens");
 const shotsDir = path.resolve("docs/screenshots");
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = [];
+let ctx = null;
 async function step(name, fn) {
   const started = Date.now();
   try {
@@ -39,6 +40,9 @@ async function step(name, fn) {
     results.push(`✔ ${name} (${Date.now() - started}ms)`);
   } catch (error) {
     results.push(`✖ ${name}: ${error.message}`);
+    const file = path.join(os.tmpdir(), `netab-e2e-failure-${Date.now()}.png`);
+    await ctx?.pages().at(-1)?.screenshot({ path: file }).catch(() => {});
+    results.push(`  screenshot: ${file}`);
     throw error;
   }
 }
@@ -53,7 +57,7 @@ manifest.host_permissions = manifest.optional_host_permissions;
 manifest.permissions = [...manifest.permissions, "bookmarks", "history", "topSites"];
 await writeFile(path.join(extDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 
-const ctx = await pw.chromium.launchPersistentContext(path.join(tmp, "profile"), {
+ctx = await pw.chromium.launchPersistentContext(path.join(tmp, "profile"), {
   channel: "chromium",
   headless: true,
   viewport: { width: 1440, height: 900 },

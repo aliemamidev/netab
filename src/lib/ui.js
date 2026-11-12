@@ -121,8 +121,11 @@ export function dialog({ title, body, buttons = [], wide = false, className = ""
     openDialogs += 1;
     requestAnimationFrame(() => {
       overlay.classList.add("shown");
-      const first = card.querySelector("[autofocus], input, textarea, select, .btn-primary");
-      first?.focus?.();
+      // Don't steal focus if the user (or a test) already moved into the dialog.
+      if (!card.contains(document.activeElement)) {
+        const first = card.querySelector("[autofocus], input, textarea, select, .btn-primary");
+        first?.focus?.();
+      }
       onOpen?.(card, finish);
     });
   });

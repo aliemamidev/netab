@@ -555,6 +555,13 @@ main {
   height: 1.75rem;
   border-radius: 6px;
 }
+.tile-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+}
 .tile-label {
   max-width: 100%;
   font-size: 0.8rem;
@@ -612,9 +619,7 @@ main {
   height: 1.3rem;
 }
 .links-grid.list .tile-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  align-items: flex-start;
 }
 .links-grid.list .tile-note {
   display: block;

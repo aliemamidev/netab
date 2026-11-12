@@ -62,8 +62,10 @@ export default {
       onkeydown: async (e) => {
         if (e.key !== "Enter" || !input.value.trim()) return;
         e.preventDefault();
-        await addTask(input.value);
+        // Clear first so text typed while saving isn't wiped.
+        const text = input.value;
         input.value = "";
+        await addTask(text);
         if (filter === "done") {
           filter = "active";
           seg.setValue("active");
@@ -78,9 +80,10 @@ export default {
         title: t("todo.add"),
         onclick: async () => {
           if (!input.value.trim()) return input.focus();
-          await addTask(input.value);
+          const text = input.value;
           input.value = "";
           input.focus();
+          await addTask(text);
         },
       },
       icon("plus", 16),

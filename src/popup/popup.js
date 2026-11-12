@@ -259,8 +259,9 @@ async function main() {
   $("captureForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const input = $("captureInput");
-    await capture(input.value);
+    const text = input.value;
     input.value = "";
+    await capture(text);
   });
 
   focusState = Focus.normalizeFocusState(await get(KEYS.focusState, null));
