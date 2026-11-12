@@ -330,6 +330,11 @@ try {
     await wait(800);
     const state = await page.evaluate(async () => (await chrome.storage.local.get("netab.focus.state.v1"))["netab.focus.state.v1"]);
     assert.equal(state.phase, "short");
+    // Completion plays the chime through an offscreen document.
+    const offscreen = await sw.evaluate(async () => (await chrome.runtime.getContexts({ contextTypes: ["OFFSCREEN_DOCUMENT"] })).length);
+    assert.equal(offscreen, 1, "offscreen audio document should exist after the chime");
+    const stats = await page.evaluate(async () => (await chrome.storage.local.get("netab.focus.stats.v1"))["netab.focus.stats.v1"]);
+    assert.ok(Object.values(stats).some((d) => d.sessions >= 2), "completed session should be recorded");
     await page.evaluate(async () => chrome.storage.local.set({ "netab.focus.state.v1": { phase: "work", status: "idle", cycle: 0, updatedAt: Date.now() } }));
   });
 
