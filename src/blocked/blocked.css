@@ -1,0 +1,57 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 20%, rgb(244 63 94 / 0.18), transparent 45%),
+    radial-gradient(circle at 70% 80%, rgb(var(--accent-rgb) / 0.18), transparent 50%),
+    var(--bg);
+}
+.blocked {
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  max-width: 34rem;
+  padding: 2rem;
+  text-align: center;
+}
+.b-ring {
+  display: grid;
+  place-items: center;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  border: 6px solid rgb(244 63 94 / 0.8);
+  box-shadow: 0 0 60px rgb(244 63 94 / 0.25);
+  font-size: 2rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+h1 {
+  margin: 0.5rem 0 0;
+  font-size: 1.8rem;
+}
+p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.b-site {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.b-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.muted {
+  color: var(--faint);
+}

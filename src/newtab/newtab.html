@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>New Tab</title>
+    <link rel="icon" type="image/png" href="../../assets/icons/icon-32.png" />
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="newtab.css" />
+    <link rel="stylesheet" href="../styles/widgets.css" />
+  </head>
+  <body class="booting">
+    <div id="bg" aria-hidden="true">
+      <div id="bgGradient" class="bg-gradient"></div>
+      <img id="bgImage" class="bg-media" alt="" />
+      <video id="bgVideo" class="bg-media" muted playsinline loop preload="auto"></video>
+      <div id="shade"></div>
+      <div class="grain"></div>
+    </div>
+
+    <header class="topbar">
+      <div class="topbar-start">
+        <button id="weatherChip" class="chip hidden" type="button"></button>
+        <button id="focusChip" class="chip focus-chip hidden" type="button"></button>
+      </div>
+      <nav class="topbar-end" aria-label="Dashboard actions">
+        <button class="icon-btn glass" id="bgNextBtn" type="button" data-i18n-title="top.nextBg"><i data-icon="image"></i></button>
+        <button class="icon-btn glass" id="zenBtn" type="button" data-i18n-title="top.zen"><i data-icon="zen"></i></button>
+        <button class="icon-btn glass" id="widgetsBtn" type="button" data-i18n-title="top.widgets"><i data-icon="layout"></i></button>
+        <button class="icon-btn glass" id="settingsBtn" type="button" data-i18n-title="top.settings"><i data-icon="settings"></i></button>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="hero">
+        <div id="greeting" class="greeting"></div>
+        <button id="clock" class="clock" type="button" data-i18n-title="clock.toggleSeconds">
+          <span class="clock-main"></span><span class="clock-period"></span>
+        </button>
+        <div id="dateLine" class="date-line"></div>
+
+        <form id="searchForm" class="search glass-strong" role="search" autocomplete="off">
+          <button type="button" id="engineBtn" class="engine-btn" data-i18n-title="search.engine"></button>
+          <span id="bangChip" class="bang-chip hidden"></span>
+          <input
+            id="searchInput"
+            class="search-input"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            data-i18n-placeholder="search.placeholder"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="searchResults"
+            aria-autocomplete="list"
+          />
+          <kbd class="search-kbd" id="searchKbd">Ctrl K</kbd>
+          <div id="searchResults" class="search-results glass-strong hidden" role="listbox"></div>
+        </form>
+      </section>
+
+      <section id="linksSection" class="links-section">
+        <div class="links-bar">
+          <div class="links-tabs" id="linksTabs" role="tablist"></div>
+        </div>
+        <div class="links-grid" id="linksGrid"></div>
+      </section>
+
+      <section id="widgetsSection" class="widgets-section">
+        <div class="widgets-toolbar hidden" id="widgetsToolbar">
+          <span data-i18n="widgets.editing"></span>
+          <button class="btn btn-sm" id="widgetsDoneBtn" type="button" data-i18n="common.done"></button>
+        </div>
+        <div id="widgetsGrid" class="widgets-grid"></div>
+      </section>
+    </main>
+
+    <div id="drawerOverlay" class="drawer-overlay hidden"></div>
+    <aside id="settingsDrawer" class="drawer glass-strong hidden" aria-hidden="true" aria-labelledby="settingsTitle"></aside>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

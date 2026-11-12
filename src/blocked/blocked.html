@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Focus</title>
+    <link rel="icon" type="image/png" href="../../assets/icons/icon-32.png" />
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="blocked.css" />
+  </head>
+  <body>
+    <main class="blocked">
+      <div class="b-ring"><span id="time">25:00</span></div>
+      <h1 data-i18n="blocked.title"></h1>
+      <p id="message"></p>
+      <p class="b-site" id="site"></p>
+      <div class="b-actions">
+        <button class="btn btn-primary" id="backBtn" type="button" data-i18n="blocked.back"></button>
+        <button class="btn" id="allowBtn" type="button" data-i18n="blocked.allow"></button>
+      </div>
+      <small class="muted" data-i18n="blocked.hint"></small>
+    </main>
+    <script type="module" src="blocked.js"></script>
+  </body>
+</html>

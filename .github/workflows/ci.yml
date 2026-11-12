@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate extension
+    name: Validate & unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,13 +22,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Show tool versions
-        run: |
-          node --version
-          npm --version
-
-      - name: Validate source
+      - name: Validate source and run unit/i18n tests
         run: npm test
+
+      - name: Lint
+        run: npm run lint
 
       - name: Build Chrome Web Store package
         run: npm run zip
@@ -36,9 +34,36 @@ jobs:
       - name: Validate packaged ZIP
         run: |
           test -f release/netab-chrome-webstore.zip
-          unzip -l release/netab-chrome-webstore.zip | grep -q 'manifest.json'
-          unzip -l release/netab-chrome-webstore.zip | grep -q 'newtab.html'
-          if unzip -l release/netab-chrome-webstore.zip | grep -E '\.(env)$|links\.local\.json|media\.local\.json|media/photos/|media/videos/|node_modules/|\.git/' ; then
-            echo 'Private or heavy files leaked into release ZIP.' >&2
+          unzip -l release/netab-chrome-webstore.zip | grep -q ' manifest.json$'
+          unzip -l release/netab-chrome-webstore.zip | grep -q 'src/newtab/newtab.html'
+          unzip -l release/netab-chrome-webstore.zip | grep -q 'src/background/service-worker.js'
+          if unzip -l release/netab-chrome-webstore.zip | grep -E '\.env$|links\.local\.json|media\.local\.json|media/photos/|media/videos/|node_modules/|\.git/|tests/|scripts/' ; then
+            echo 'Private, heavy or dev-only files leaked into the release ZIP.' >&2
             exit 1
           fi
+
+      - name: Upload Chrome Web Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: netab-chrome-webstore
+          path: release/netab-chrome-webstore.zip
+
+  e2e:
+    name: End-to-end (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e

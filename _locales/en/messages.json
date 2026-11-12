@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "NeTab — New Tab, Focus & Tab Manager",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Private all-in-one new tab: smart search, Pomodoro with site blocking, tab manager, tasks, notes, weather and Jalali calendar.",
+    "description": "Extension description (max 132 chars)"
+  }
+}

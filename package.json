@@ -1,12 +1,15 @@
 {
   "name": "netab",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "private": false,
-  "description": "Privacy-friendly Chrome new tab dashboard with grouped links, local media backgrounds, widgets, and local-first settings.",
+  "description": "Private all-in-one Chrome new tab: smart search & command palette, Pomodoro with site blocking, tab manager, tasks, notes, weather, Jalali calendar.",
   "type": "module",
   "scripts": {
-    "test": "node scripts/validate.mjs && node --check newtab.js",
+    "test": "node scripts/validate.mjs && node --test tests/unit.test.mjs tests/i18n.test.mjs",
+    "test:e2e": "node tests/e2e.mjs",
     "validate": "node scripts/validate.mjs",
+    "lint": "npx --yes eslint@10 src scripts tests",
+    "icons": "node scripts/render-icons.mjs",
     "sync:env": "node scripts/sync-env.mjs",
     "zip": "node scripts/zip-release.mjs"
   },
@@ -14,8 +17,16 @@
     "chrome-extension",
     "new-tab",
     "dashboard",
-    "quick-links",
-    "wallpaper"
+    "productivity",
+    "pomodoro",
+    "tab-manager",
+    "command-palette",
+    "jalali-calendar",
+    "persian",
+    "quick-links"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
 }

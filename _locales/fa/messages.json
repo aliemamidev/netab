@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "NeTab — زبانه جدید، تمرکز و مدیریت زبانه‌ها",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "زبانه جدید خصوصی و همه‌کاره: جستجوی هوشمند، پومودورو با مسدودسازی سایت، مدیریت زبانه، کارها، یادداشت، آب‌وهوا و تقویم شمسی.",
+    "description": "Extension description (max 132 chars)"
+  }
+}

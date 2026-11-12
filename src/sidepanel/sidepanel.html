@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>NeTab</title>
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="../styles/widgets.css" />
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="sp-header">
+      <div class="sp-brand"><img src="../../assets/icons/icon-32.png" alt="" /><strong>NeTab</strong></div>
+      <button class="icon-btn sm" id="openDashboard" type="button" data-i18n-title="popup.openDashboard"><i data-icon="external" data-size="16"></i></button>
+    </header>
+    <nav class="sp-tabs" id="tabs" role="tablist"></nav>
+    <main id="panel" class="sp-panel"></main>
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>

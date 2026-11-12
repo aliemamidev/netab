@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="dark light" />
+    <title>NeTab</title>
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="p-header">
+      <div class="p-brand">
+        <img src="../../assets/icons/icon-32.png" alt="" />
+        <strong>NeTab</strong>
+      </div>
+      <div class="p-header-actions">
+        <button class="icon-btn sm" id="sidePanelBtn" type="button" data-i18n-title="about.kSidePanel"><i data-icon="panel" data-size="17"></i></button>
+        <button class="icon-btn sm" id="newTabBtn" type="button" data-i18n-title="popup.openDashboard"><i data-icon="layout" data-size="17"></i></button>
+        <button class="icon-btn sm" id="settingsBtn" type="button" data-i18n-title="top.settings"><i data-icon="settings" data-size="17"></i></button>
+      </div>
+    </header>
+
+    <section class="p-card" id="pageCard">
+      <div class="p-page">
+        <span class="p-fav"><img id="pageFav" alt="" /></span>
+        <div class="p-page-text">
+          <strong id="pageTitle">…</strong>
+          <small id="pageHost"></small>
+        </div>
+      </div>
+      <div class="p-page-actions">
+        <button class="btn btn-sm" id="saveLinkBtn" type="button"><i data-icon="star" data-size="15"></i><span data-i18n="popup.saveLink"></span></button>
+        <button class="btn btn-sm" id="readLaterBtn" type="button"><i data-icon="bookmark" data-size="15"></i><span data-i18n="popup.readLater"></span></button>
+        <button class="icon-btn sm" id="copyBtn" type="button" data-i18n-title="popup.copy"><i data-icon="copy" data-size="16"></i></button>
+      </div>
+    </section>
+
+    <section class="p-card p-focus" id="focusCard">
+      <div class="p-focus-info">
+        <span class="p-focus-dot"></span>
+        <strong id="focusTime">25:00</strong>
+        <span id="focusPhase" class="muted"></span>
+      </div>
+      <div class="p-focus-actions">
+        <button class="icon-btn sm" id="focusReset" type="button" data-i18n-title="focus.reset"><i data-icon="reset" data-size="16"></i></button>
+        <button class="btn btn-sm btn-primary" id="focusToggle" type="button"></button>
+        <button class="icon-btn sm" id="focusSkip" type="button" data-i18n-title="focus.skip"><i data-icon="skip" data-size="16"></i></button>
+      </div>
+    </section>
+
+    <section class="p-card">
+      <form id="captureForm" class="p-capture" autocomplete="off">
+        <input id="captureInput" class="input" type="text" maxlength="500" data-i18n-placeholder="popup.capture" />
+        <div class="segmented small" id="captureMode">
+          <button type="button" class="active" data-mode="task" data-i18n="popup.task"></button>
+          <button type="button" data-mode="note" data-i18n="popup.note"></button>
+        </div>
+      </form>
+    </section>
+
+    <section class="p-card">
+      <div class="p-tabs-head">
+        <span class="subhead" data-i18n="popup.tabTools"></span>
+        <span id="tabStats" class="muted small"></span>
+      </div>
+      <div class="p-tools" id="tools"></div>
+    </section>
+
+    <footer class="p-footer">
+      <button class="link-btn" id="todayBtn" type="button"></button>
+      <button class="link-btn" id="rlBtn" type="button"></button>
+    </footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

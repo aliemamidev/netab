@@ -1,0 +1,90 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(var(--accent-rgb) / 0.12), transparent 45%),
+    var(--surface-solid);
+}
+.sp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.8rem 0.4rem;
+}
+.sp-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sp-brand img {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+.sp-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem 0.5rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.sp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  padding: 0.38rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.sp-tab:hover {
+  color: var(--text);
+  background: var(--fill);
+}
+.sp-tab.active {
+  color: var(--text);
+  background: rgb(var(--accent-rgb) / 0.15);
+  border-color: rgb(var(--accent-rgb) / 0.35);
+}
+.sp-panel {
+  flex: 1;
+  overflow: auto;
+  padding: 0.75rem;
+}
+.sp-panel .widget {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  animation: none;
+}
+.sp-panel .widget-header {
+  padding-inline: 0.2rem;
+}
+.sp-panel .widget-body {
+  padding-inline: 0.2rem;
+}
+.sp-panel .todo-list,
+.sp-panel .rl-list,
+.sp-panel .session-list {
+  max-height: none;
+}
+.sp-panel .note-area {
+  min-height: 55vh;
+}
+.sp-panel .focus-main {
+  flex-direction: column;
+}
+.sp-panel .focus-side {
+  align-items: center;
+}
