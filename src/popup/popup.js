@@ -43,7 +43,7 @@ async function renderPage() {
   $("pageTitle").textContent = tab?.title || t("popup.noPage");
   $("pageHost").textContent = ok ? hostname(url) : t("popup.notSavable");
   setFavicon($("pageFav"), ok ? url : "https://netab.local/", 32);
-  for (const id of ["saveLinkBtn", "readLaterBtn", "copyBtn", "qrBtn"]) $(id).disabled = !ok;
+  for (const id of ["saveLinkBtn", "readLaterBtn", "copyBtn", "qrBtn", "shotBtn"]) $(id).disabled = !ok;
   if (!ok) return;
   const rl = await getList(KEYS.readLater);
   if (rl.some((x) => x.url === url && !x.done)) markDone($("readLaterBtn"), t("popup.saved"));
@@ -87,6 +87,27 @@ function copyMenu(anchor) {
     { label: t("popup.copyTitleUrl"), icon: "copy", onClick: () => copy(`${title}\n${tab.url}`) },
     { label: t("popup.copyClean"), icon: "sparkles", onClick: () => copy(cleanUrl(tab.url)) },
   ]);
+}
+
+/** Capture the visible part of the page (activeTab) and open it in the viewer. */
+async function screenshot(windowId) {
+  try {
+    let dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
+    const area = chrome.storage.session || chrome.storage.local;
+    const record = { dataUrl, title: tab.title, url: tab.url, at: Date.now() };
+    try {
+      await area.set({ "netab.shot": record });
+    } catch {
+      // Very large PNGs can exceed session storage; fall back to high-quality JPEG.
+      dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: "jpeg", quality: 92 });
+      await area.set({ "netab.shot": { ...record, dataUrl } });
+    }
+    await chrome.tabs.create({ url: chrome.runtime.getURL("src/shot/shot.html") });
+    window.close();
+  } catch (error) {
+    console.warn(error);
+    toast(t("shot.failed"), { kind: "error" });
+  }
 }
 
 /** Strip common tracking parameters (utm_*, fbclid, gclid, …). */
@@ -244,6 +265,7 @@ async function main() {
   $("saveLinkBtn").onclick = saveLink;
   $("readLaterBtn").onclick = readLater;
   $("copyBtn").onclick = (e) => copyMenu(e.currentTarget);
+  $("shotBtn").onclick = () => screenshot(windowId);
   $("qrBtn").onclick = () => showQrDialog(cleanUrl(tab.url), { title: tab.title || t("qr.title") });
   $("focusToggle").onclick = () => focus("toggle");
   $("focusReset").onclick = () => focus("reset");

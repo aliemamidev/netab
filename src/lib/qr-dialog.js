@@ -1,6 +1,6 @@
 // QR code dialog (popup: current page, new tab: any text via the command palette).
 
-import { h, copyText, downloadFile } from "./utils.js";
+import { h, copyText, downloadFile, dataUrlToBlob } from "./utils.js";
 import { icon } from "./icons.js";
 import { t } from "./i18n.js";
 import { dialog, toast } from "./ui.js";
@@ -41,10 +41,7 @@ export function showQrDialog(text, { title } = {}) {
         {
           class: "btn btn-sm",
           type: "button",
-          onclick: async () => {
-            const blob = await (await fetch(qrPngDataUrl(text))).blob();
-            downloadFile("netab-qr.png", blob, "image/png");
-          },
+          onclick: () => downloadFile("netab-qr.png", dataUrlToBlob(qrPngDataUrl(text)), "image/png"),
         },
         icon("download", 14),
         t("qr.download"),

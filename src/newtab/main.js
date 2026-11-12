@@ -199,7 +199,7 @@ function initKeyboard() {
     const text = e.clipboardData?.getData("text")?.trim();
     if (text && /^https?:\/\/\S+$/.test(text)) {
       e.preventDefault();
-      linkDialog({ url: text, label: "", note: "", icon: "", id: undefined, enabled: true }).catch(() => {});
+      linkDialog(null, null, { url: text }).catch(() => {});
     }
   });
 }
@@ -294,6 +294,10 @@ async function main() {
   document.addEventListener("netab:open-note", async (e) => {
     const w = await ensureWidget("notes");
     w?.instance?.openNote?.(e.detail);
+  });
+
+  on("settings", ({ langChanged }) => {
+    if (langChanged) document.title = t("app.newTab");
   });
 
   document.body.classList.remove("booting");

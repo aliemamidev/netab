@@ -230,6 +230,19 @@ export function setFavicon(img, pageUrl, size = 64) {
   img.src = primary;
 }
 
+/** Convert a data: URL to a Blob without fetch() (data: is outside our CSP connect-src). */
+export function dataUrlToBlob(dataUrl) {
+  const [head, body] = String(dataUrl).split(",", 2);
+  const mime = /data:([^;,]+)/.exec(head)?.[1] || "application/octet-stream";
+  if (/;base64/i.test(head)) {
+    const bin = atob(body);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+  return new Blob([decodeURIComponent(body)], { type: mime });
+}
+
 export function downloadFile(filename, data, type = "application/json") {
   const blob = data instanceof Blob ? data : new Blob([typeof data === "string" ? data : JSON.stringify(data, null, 2)], { type });
   const url = URL.createObjectURL(blob);

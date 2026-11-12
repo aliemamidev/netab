@@ -203,6 +203,12 @@ try {
     await page.waitForFunction(() => document.querySelector("#bangChip")?.textContent === "GitHub");
     await page.fill("#searchInput", "git");
     await page.waitForFunction(() => document.querySelector(".result .result-hint")?.textContent === "Top hit");
+    await page.fill("#searchInput", "password 24");
+    await page.waitForFunction(() => document.querySelector(".result.result-calc .result-title")?.textContent.length === 24);
+    await page.fill("#searchInput", "time in tokyo");
+    await page.waitForFunction(() => /Tokyo/.test(document.querySelector(".result.result-calc .result-sub")?.textContent || ""));
+    await page.fill("#searchInput", "#7c9cff");
+    await page.waitForSelector(".swatch-dot");
     await page.fill("#searchInput", ">tab");
     await page.waitForSelector(".result.result-command");
     if (SCREENS) {
@@ -230,6 +236,8 @@ try {
     await page.fill('.dialog-card textarea[name="text"]', "https://github.com/aliemamidev/netab");
     await page.click(".dialog-footer .btn-primary");
     await page.waitForSelector(".qr-svg path");
+    const [qrDownload] = await Promise.all([page.waitForEvent("download"), page.getByText("Download PNG").click()]);
+    assert.equal(qrDownload.suggestedFilename(), "netab-qr.png");
     if (SCREENS) await page.screenshot({ path: `${shotsDir}/qr.jpg`, type: "jpeg", quality: 84 });
     await page.keyboard.press("Escape");
   });
@@ -353,6 +361,25 @@ try {
     await panel.locator(".sp-tab").nth(1).click();
     await panel.waitForSelector(".note-area");
     await panel.close();
+  });
+
+  await step("screenshot viewer shows a captured image", async () => {
+    const viewer = watch(await ctx.newPage(), "shot");
+    await viewer.goto(`${base}/shot/shot.html`);
+    await viewer.evaluate(async () => {
+      const c = document.createElement("canvas");
+      c.width = 320;
+      c.height = 200;
+      const g = c.getContext("2d");
+      g.fillStyle = "#7c9cff";
+      g.fillRect(0, 0, 320, 200);
+      await chrome.storage.session.set({ "netab.shot": { dataUrl: c.toDataURL("image/png"), title: "Example", url: "https://example.com/", at: Date.now() } });
+    });
+    await viewer.reload();
+    await viewer.waitForFunction(() => document.getElementById("shotImage").naturalWidth === 320);
+    const [download] = await Promise.all([viewer.waitForEvent("download"), viewer.click("#downloadBtn")]);
+    assert.match(download.suggestedFilename(), /^screenshot-example\.com-.*\.png$/);
+    await viewer.close();
   });
 
   await step("options page redirects to settings", async () => {

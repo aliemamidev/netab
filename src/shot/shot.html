@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Screenshot</title>
+    <link rel="icon" type="image/png" href="../../assets/icons/icon-32.png" />
+    <link rel="stylesheet" href="../styles/base.css" />
+    <link rel="stylesheet" href="shot.css" />
+  </head>
+  <body>
+    <header class="shot-bar glass-strong">
+      <div class="shot-info">
+        <img src="../../assets/icons/icon-32.png" alt="" />
+        <div>
+          <strong id="shotTitle" data-i18n="shot.title"></strong>
+          <small id="shotMeta" class="muted"></small>
+        </div>
+      </div>
+      <div class="shot-actions">
+        <button class="btn" id="copyBtn" type="button"><i data-icon="copy" data-size="16"></i><span data-i18n="shot.copy"></span></button>
+        <button class="btn btn-primary" id="downloadBtn" type="button"><i data-icon="download" data-size="16"></i><span data-i18n="shot.download"></span></button>
+      </div>
+    </header>
+    <main class="shot-stage">
+      <img id="shotImage" alt="" />
+      <p id="shotEmpty" class="muted hidden" data-i18n="shot.missing"></p>
+    </main>
+    <script type="module" src="shot.js"></script>
+  </body>
+</html>

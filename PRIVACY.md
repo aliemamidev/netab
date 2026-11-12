@@ -35,6 +35,7 @@ Search queries you type are sent only to the search engine you choose, when you 
 | --- | --- |
 | `storage` | Save your settings and content locally |
 | `favicon` | Show site icons for your links, tabs and saved pages (served by Chrome, no network request) |
+| `activeTab` | Take a screenshot of the visible part of the current page when you click the camera button in the popup. The image is shown only to you in a local viewer page |
 | `tabs`, `tabGroups` | Tab manager (find duplicates, group or sort by site, save and restore sessions), switching to open tabs from search, saving the current page, and redirecting blocked sites during focus sessions |
 | `alarms`, `notifications`, `offscreen` | Run the focus timer in the background, notify you when a phase ends, and play the chime |
 | `contextMenus` | "Save to NeTab" items in the right-click menu |

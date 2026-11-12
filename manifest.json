@@ -38,6 +38,7 @@
   "permissions": [
     "storage",
     "favicon",
+    "activeTab",
     "alarms",
     "notifications",
     "contextMenus",
@@ -49,7 +50,11 @@
     "system.cpu",
     "system.memory"
   ],
-  "optional_permissions": ["bookmarks", "history", "topSites"],
+  "optional_permissions": [
+    "bookmarks",
+    "history",
+    "topSites"
+  ],
   "optional_host_permissions": [
     "https://api.open-meteo.com/*",
     "https://geocoding-api.open-meteo.com/*",
@@ -58,19 +63,27 @@
   ],
   "commands": {
     "_execute_action": {
-      "suggested_key": { "default": "Alt+Shift+N" },
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
       "description": "Open the NeTab popup"
     },
     "toggle-focus": {
-      "suggested_key": { "default": "Alt+Shift+F" },
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
       "description": "Start / pause the focus timer"
     },
     "read-later": {
-      "suggested_key": { "default": "Alt+Shift+L" },
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      },
       "description": "Save the current page to Read later"
     },
     "open-side-panel": {
-      "suggested_key": { "default": "Alt+Shift+S" },
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
       "description": "Open the NeTab side panel"
     }
   },

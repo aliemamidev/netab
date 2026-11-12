@@ -60,14 +60,15 @@ async function loadTopSites() {
   }
 }
 
-export async function linkDialog(existing = null, groupId = null) {
+/** Add (existing = null) or edit a link. `prefill` seeds a new link's fields. */
+export async function linkDialog(existing = null, groupId = null, prefill = {}) {
   const groups = links.groups;
   if (!groups.length) groups.push(normalizeGroup({ id: "inbox", name: t("links.inbox"), icon: "📥" }));
   const values = await formDialog({
     title: existing ? t("links.edit") : t("links.add"),
     fields: [
-      { name: "url", label: "URL", value: existing?.url || "", placeholder: "https://", required: true, autofocus: !existing, dir: "ltr", wide: true },
-      { name: "label", label: t("links.label"), value: existing?.label || "", placeholder: t("links.labelHint") },
+      { name: "url", label: "URL", value: existing?.url || prefill.url || "", placeholder: "https://", required: true, autofocus: !existing && !prefill.url, dir: "ltr", wide: true },
+      { name: "label", label: t("links.label"), value: existing?.label || prefill.label || "", placeholder: t("links.labelHint"), autofocus: Boolean(!existing && prefill.url) },
       { name: "icon", label: t("links.icon"), value: existing?.icon || "", placeholder: t("links.iconHint"), maxlength: 4 },
       { name: "note", label: t("links.note"), value: existing?.note || "", wide: true },
       {
@@ -193,7 +194,7 @@ function tileMenu(anchor, link, group) {
     { label: t("links.openNewTab"), icon: "external", onClick: () => open(link.url, true) },
     { label: t("links.copyUrl"), icon: "copy", onClick: async () => (await copyText(link.url)) && toast(t("common.copied")) },
     readonly
-      ? { label: t("links.pin"), icon: "pin", onClick: () => linkDialog({ ...normalizeLink({ url: link.url, label: link.label }), id: undefined }) }
+      ? { label: t("links.pin"), icon: "pin", onClick: () => linkDialog(null, null, { url: link.url, label: link.label }) }
       : { label: t("common.edit"), icon: "edit", onClick: () => linkDialog(link, group) },
     ...(!readonly && moveTargets.length
       ? [

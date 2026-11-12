@@ -440,6 +440,12 @@ main {
   background: rgb(var(--accent-rgb) / 0.16);
   color: var(--accent);
 }
+.swatch-dot {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+}
 .results-footer {
   display: flex;
   flex-wrap: wrap;

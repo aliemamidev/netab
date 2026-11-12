@@ -15,6 +15,7 @@ A ground-up rewrite that turns NeTab from a links page into a full productivity 
 - Quick links rebuilt as tiles or a list: inline add/edit, drag to reorder, drop on a group to move, paste a URL to add, import a bookmark folder, Most visited, Open all, and letter-tile fallback icons.
 - Settings drawer that saves instantly, permissions dashboard, full JSON backup/restore (accepts 2.x exports), reset.
 - Welcome screen on install.
+- QR codes (dependency-free encoder) for the current page and any text, page screenshots (visible area) with copy and download, and instant answers in the search box (world time, passwords, UUIDs, colours, Unix timestamps, Base64).
 - Unit, i18n and Playwright end-to-end tests. Stricter store validation (CSP, permissions, no innerHTML/eval/inline scripts, import and asset checks).
 
 ### Changed

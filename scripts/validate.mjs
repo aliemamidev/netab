@@ -22,6 +22,7 @@ const requiredFiles = [
   "src/blocked/blocked.html",
   "src/offscreen/offscreen.html",
   "src/options/options.html",
+  "src/shot/shot.html",
   "src/background/service-worker.js",
   "data/links.json",
   "data/media.json",
@@ -37,6 +38,7 @@ const privateFiles = [".env", "data/links.local.json", "data/media.local.json"];
 
 const ALLOWED_PERMISSIONS = new Set([
   "storage",
+  "activeTab",
   "favicon",
   "alarms",
   "notifications",

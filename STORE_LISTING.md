@@ -23,6 +23,7 @@ NeTab turns every new tab into a calm, fast and private productivity dashboard.
 SEARCH EVERYTHING FROM ONE BOX
 • Use your favourite engine or any of 25+ built-in !bangs (!yt, !gh, !w, !gpt, !p, !maps…), and add your own
 • Calculator and unit converter: 12*(4+5), 15% of 80, 10 km to mi, 30 c to f
+• Instant answers: world time, passwords, UUIDs, colour and timestamp conversion
 • Find quick links, open tabs, bookmarks, history and notes as you type
 • Type > to run commands: themes, tab cleanup, sessions, Chrome pages and more
 
@@ -44,7 +45,7 @@ WIDGETS
 Today's focus, quotes, weather, a calendar (Gregorian / Persian Jalali / Hijri), markets (crypto, gold, currencies), world clock and a system monitor. Turn them on or off and drag them into your own layout.
 
 EVERYWHERE IN CHROME
-Toolbar popup, side panel, right-click menu and keyboard shortcuts.
+Toolbar popup (save, copy clean links, QR code, screenshot, tab tools), side panel, right-click menu and keyboard shortcuts.
 
 BEAUTIFUL AND PERSONAL
 Dark, light and auto themes, accent colours, glass effects, animated gradients, your own photos and videos, and a Zen mode. Full Persian (RTL) interface with the Vazirmatn font.
@@ -62,6 +63,7 @@ NeTab is a personal productivity dashboard for the New Tab page. The popup, side
 | --- | --- |
 | storage | Stores the user's settings, links, tasks, notes, sessions and statistics locally. |
 | favicon | Shows website icons for the user's links, open tabs and saved pages, using Chrome's local favicon cache. |
+| activeTab | Captures a screenshot of the visible area of the current tab when the user clicks the popup's camera button. The image stays local. |
 | tabs | Tab manager features (find and close duplicates, sort, group, save and restore sessions), switching to an open tab from the search box, saving the current page from the popup, and redirecting blocked sites during focus sessions. Page content is never read. |
 | tabGroups | "Group by site" creates and names Chrome tab groups. |
 | alarms | Ends focus and break phases on time, even with no NeTab tab open. |

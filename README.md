@@ -22,6 +22,10 @@ No account, no servers, no analytics. Everything stays on your device. Full **En
 | --- | --- | --- |
 | ![Popup](docs/screenshots/popup.jpg) | ![Side panel](docs/screenshots/sidepanel.jpg) | ![Settings](docs/screenshots/settings-appearance.jpg) |
 
+| QR code | Focus settings |
+| --- | --- |
+| ![QR](docs/screenshots/qr.jpg) | ![Focus settings](docs/screenshots/settings-focus.jpg) |
+
 Full page: [dashboard-full.jpg](docs/screenshots/dashboard-full.jpg)
 
 </details>
@@ -31,8 +35,9 @@ Full page: [dashboard-full.jpg](docs/screenshots/dashboard-full.jpg)
 ### Search box and command palette
 - **Search engines and !bangs**: the browser default, Google, Bing, DuckDuckGo, Brave, ChatGPT, Claude, Perplexity, YouTube, GitHub, Wikipedia (EN/FA), Translate, Maps, Digikala, Aparat and more. Type `!yt lofi`, `lofi !yt`, `gh: netab`, or type `yt` and press <kbd>Tab</kbd>. You can also add your own engines.
 - **Calculator and unit converter**: `12*(4+5)`, `sqrt(2)`, `5!`, `15% of 80`, `10 km to mi`, `30 c to f`, `2 gib to mb`, and `100 usd to eur` (uses cached rates). Persian digits work too.
+- **Instant answers**: `uuid`, `password 24`, `time tokyo` / `ساعت تهران`, Unix timestamps (`1700000000`, `now`), colors (`#7c9cff`, `rgb(…)`, `hsl(…)` → HEX/RGB/HSL), and `base64 …` / `base64d …`. Press <kbd>Enter</kbd> to copy.
 - **One box for everything**: quick links, **open tabs** (switch to them), **bookmarks and history** (opt-in), and notes, with fuzzy matching and a "Top hit".
-- **Commands**: type `>` to run any action: change theme or language, next wallpaper, start the focus timer, new note or task, save a session, close duplicate tabs, group tabs, free memory, merge windows, open the side panel, export a backup, or open Chrome pages (Downloads, History, Extensions, Passwords…).
+- **Commands**: type `>` to run any action: change theme or language, next wallpaper, start the focus timer, new note or task, save a session, close duplicate tabs, group tabs, free memory, merge windows, open the side panel, export a backup, make a QR code, or open Chrome pages (Downloads, History, Extensions, Passwords…).
 
 ### Focus timer (Pomodoro)
 - Focus, short break and long break phases, with auto-start options, a daily goal, today's stats and a 7-day chart.
@@ -53,7 +58,7 @@ Full page: [dashboard-full.jpg](docs/screenshots/dashboard-full.jpg)
 Today (daily focus and a quote), Tasks, Focus timer, Weather (Open-Meteo, 6-day forecast), Calendar (Gregorian, Jalali, Hijri, with due-task dots), Notes, Markets (crypto, gold via PAXG, currencies), Read later, Tabs & sessions, World clock, and System (CPU, memory, battery). Turn them on or off and **drag to arrange**.
 
 ### Everywhere in Chrome
-- **Popup**: save the current page to quick links or read later, copy it as a URL, a Markdown link or a **tracker-free URL**, control the focus timer, capture a task or note, and use the tab tools.
+- **Popup**: save the current page to quick links or read later, copy it as a URL, a Markdown link or a **tracker-free URL**, show a **QR code** to open it on your phone, take a **screenshot** of the visible area (copy or download it), control the focus timer, capture a task or note, and use the tab tools.
 - **Side panel**: tasks, notes, focus, read later, sessions and calendar next to any page.
 - **Right-click menu**: add a page to quick links, read later, save selected text to notes or as a task, search the selection, toggle focus, or save the window as a session.
 - **Keyboard shortcuts**: <kbd>Alt+Shift+N</kbd> popup · <kbd>Alt+Shift+F</kbd> focus timer · <kbd>Alt+Shift+L</kbd> read later · <kbd>Alt+Shift+S</kbd> side panel.
@@ -120,8 +125,8 @@ src/
   background/            Service worker: menus, commands, focus engine, blocking, badge
   newtab/                Dashboard: clock, search/palette, links, widgets, settings
     widgets/             One module per widget (shared with the side panel)
-  popup/  sidepanel/  blocked/  options/  offscreen/
-  lib/                   storage, i18n + strings, dates, calc, engines, focus, tabs, net, ui, icons
+  popup/  sidepanel/  blocked/  shot/  options/  offscreen/
+  lib/                   storage, i18n + strings, dates, calc, instant, qr, engines, focus, tabs, net, ui, icons
   styles/                Design tokens, components, widget styles
 tests/                   Unit, i18n and end-to-end tests
 scripts/                 validate, zip-release, sync-env, render-icons
@@ -152,12 +157,12 @@ Google controls the review, so no project can guarantee approval. This one is bu
 
 **NeTab** صفحهٔ زبانهٔ جدید کروم را به یک داشبورد سریع، زیبا و کاملاً خصوصی تبدیل می‌کند:
 
-- **جستجوی هوشمند و پالت فرمان**: جستجو در وب با میان‌برهای `!yt`، `!gh`، `!w`، `!gpt`، `!dk` (دیجی‌کالا) و `!ap` (آپارات)؛ ماشین‌حساب و تبدیل واحد (`۱۵% of 80`، `10 km to mi`)؛ جستجو در لینک‌ها، زبانه‌های باز، نشانک‌ها، تاریخچه و یادداشت‌ها؛ و اجرای هر فرمان با `>`.
+- **جستجوی هوشمند و پالت فرمان**: جستجو در وب با میان‌برهای `!yt`، `!gh`، `!w`، `!gpt`، `!dk` (دیجی‌کالا) و `!ap` (آپارات)؛ ماشین‌حساب و تبدیل واحد (`۱۵% of 80`، `10 km to mi`)؛ پاسخ فوری (`ساعت تهران`، `password 24`، `uuid`، تبدیل رنگ و زمان یونیکس)؛ جستجو در لینک‌ها، زبانه‌های باز، نشانک‌ها، تاریخچه و یادداشت‌ها؛ و اجرای هر فرمان با `>`.
 - **تایمر تمرکز (پومودورو)** با اعلان، صدا، آمار روزانه و هفتگی و **مسدودسازی سایت‌های حواس‌پرت** در زمان تمرکز.
 - **مدیریت زبانه‌ها**: بستن زبانه‌های تکراری، گروه‌بندی و مرتب‌سازی بر اساس سایت، آزادسازی حافظه، ادغام پنجره‌ها، و ذخیره و بازیابی نشست‌ها.
 - **کارها، یادداشت‌ها و «بعداً بخوانم»** با نوشتار سریع (`!!` برای ستاره و `@امروز` یا `@فردا` برای موعد).
 - **تقویم شمسی، میلادی و قمری**، ساعت جهانی، آب‌وهوا، و قیمت رمزارز، طلا و ارز.
-- **پنجرهٔ نوار ابزار، پنل کناری و منوی کلیک راست** برای ذخیرهٔ صفحه، متن انتخاب‌شده، کار و یادداشت از هر صفحه‌ای.
+- **پنجرهٔ نوار ابزار، پنل کناری و منوی کلیک راست** برای ذخیرهٔ صفحه، متن انتخاب‌شده، کار و یادداشت از هر صفحه‌ای، به‌علاوهٔ **کد QR** برای باز کردن صفحه روی گوشی و **اسکرین‌شات** از صفحه.
 - رابط کاملاً **فارسی و راست‌به‌چپ** با فونت وزیرمتن و اعداد فارسی، پوستهٔ تیره و روشن، و پس‌زمینهٔ گرادیان متحرک، عکس یا ویدیو.
 - **بدون حساب کاربری و بدون ردیابی**: همهٔ داده‌ها روی دستگاه شما می‌ماند. از همه چیز می‌توانید پشتیبان JSON بگیرید و دوباره بازیابی کنید.
 

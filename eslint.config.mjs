@@ -10,7 +10,7 @@ export default [
         setInterval: "readonly", clearInterval: "readonly", requestAnimationFrame: "readonly", fetch: "readonly",
         URL: "readonly", URLSearchParams: "readonly", Blob: "readonly", Image: "readonly", Node: "readonly",
         Event: "readonly", CustomEvent: "readonly", EventTarget: "readonly", DOMParser: "readonly", CSS: "readonly",
-        AbortController: "readonly", TextEncoder: "readonly", indexedDB: "readonly", AudioContext: "readonly", chrome: "readonly",
+        AbortController: "readonly", TextEncoder: "readonly", TextDecoder: "readonly", ClipboardItem: "readonly", crypto: "readonly", btoa: "readonly", atob: "readonly", indexedDB: "readonly", AudioContext: "readonly", chrome: "readonly",
         globalThis: "readonly", structuredClone: "readonly", Intl: "readonly", matchMedia: "readonly",
         innerWidth: "readonly", innerHeight: "readonly", process: "readonly", performance: "readonly",
       },

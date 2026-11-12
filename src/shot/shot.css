@@ -1,0 +1,58 @@
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgb(var(--accent-rgb) / 0.14), transparent 45%),
+    var(--bg);
+}
+.shot-bar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.75rem auto 0;
+  width: min(1200px, calc(100% - 1.5rem));
+  padding: 0.6rem 0.75rem;
+  border-radius: calc(var(--radius) + 4px);
+}
+.shot-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+.shot-info img {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.shot-info div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.shot-info strong,
+.shot-info small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shot-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.shot-stage {
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+.shot-stage img {
+  max-width: min(1200px, 100%);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.muted {
+  color: var(--muted);
+}

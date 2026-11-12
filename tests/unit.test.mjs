@@ -11,6 +11,7 @@ import { normalizeSettings, DEFAULT_SETTINGS, WIDGET_IDS } from "../src/lib/stor
 import { normalizeLinks, normalizeMedia, fileKind } from "../src/lib/config.js";
 import { quoteOfDay, QUOTES } from "../src/lib/quotes.js";
 import { encodeQR } from "../src/lib/qr.js";
+import { instantAnswers, randomPassword, parseColor, findTimeZone } from "../src/lib/instant.js";
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 
@@ -223,6 +224,34 @@ test("QR encoder: sizes, finder patterns, versions and capacity", () => {
   // UTF-8 (Persian) works and output is deterministic.
   assert.deepEqual(encodeQR("سلام", "Q").modules, encodeQR("سلام", "Q").modules);
   assert.throws(() => encodeQR("x".repeat(5000), "H"));
+});
+
+test("instant answers", () => {
+  const ctx = { t: (k, v) => `${k}${v ? JSON.stringify(v) : ""}`, dateTime: (d) => d.toISOString(), timeIn: (d, tz) => ({ time: tz, date: "", offset: "" }) };
+  assert.match(instantAnswers("uuid", ctx)[0].title, /^[0-9a-f-]{36}$/);
+  const pwd = instantAnswers("password 32", ctx)[0].title;
+  assert.equal(pwd.length, 32);
+  assert.match(pwd, /[a-z]/);
+  assert.match(pwd, /[A-Z]/);
+  assert.match(pwd, /[0-9]/);
+  assert.match(pwd, /[!@#$%^&*\-_=+?]/);
+  assert.equal(randomPassword(3).length, 6); // clamped minimum
+  assert.equal(instantAnswers("time in tokyo", ctx)[0].title, "Asia/Tokyo");
+  assert.equal(instantAnswers("ساعت تهران", ctx)[0].title, "Asia/Tehran");
+  assert.equal(instantAnswers("new york time", ctx)[0].title, "America/New_York");
+  assert.equal(findTimeZone("atlantis"), null);
+  assert.equal(findTimeZone("san francisco").label, "San Francisco");
+  assert.equal(findTimeZone("tokyo").label, "Tokyo");
+  const ts = instantAnswers("1700000000", ctx)[0];
+  assert.equal(ts.copy, "2023-11-14T22:13:20.000Z");
+  assert.equal(ts.weak, true);
+  assert.deepEqual(parseColor("#7c9cff"), { hex: "#7c9cff", rgb: "rgb(124, 156, 255)", hsl: "hsl(225, 100%, 74%)" });
+  assert.equal(parseColor("rgb(255, 0, 0)").hex, "#ff0000");
+  assert.equal(parseColor("hsl(120, 100%, 50%)").hex, "#00ff00");
+  assert.equal(parseColor("bad"), null);
+  assert.equal(instantAnswers("base64 سلام", ctx)[0].title, "2LPZhNin2YU=");
+  assert.equal(instantAnswers("base64d 2LPZhNin2YU=", ctx)[0].title, "سلام");
+  assert.deepEqual(instantAnswers("hello world", ctx), []);
 });
 
 test("quotes are stable per day", () => {

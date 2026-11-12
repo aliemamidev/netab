@@ -3,10 +3,12 @@
 
 import { h, clear, debounce, looksLikeUrl, normalizeUrl, setFavicon, hostname, copyText, isExtension } from "../lib/utils.js";
 import { icon } from "../lib/icons.js";
-import { t, locale } from "../lib/i18n.js";
+import { t, locale, lang } from "../lib/i18n.js";
 import { app, on, updateSettings } from "./app.js";
 import { allEngines, engineById, parseBang, engineUrl, engineHome } from "../lib/engines.js";
 import { calculate, formatResult } from "../lib/calc.js";
+import { instantAnswers } from "../lib/instant.js";
+import { formatDate, formatTime, timeZoneOffsetLabel } from "../lib/dates.js";
 import { cachedRates } from "../lib/net.js";
 import { bestScore, fuzzyScore } from "../lib/fuzzy.js";
 import { openMenu, toast } from "../lib/ui.js";
@@ -119,6 +121,20 @@ async function collect(raw) {
     }
   }
 
+  const INSTANT_ICONS = { uuid: "sparkles", password: "shield", time: "clock", timestamp: "history", base64: "copy" };
+  const instants = s.sources.calc
+    ? instantAnswers(query, {
+        t,
+        dateTime: (d) => formatDate(d, "gregory", lang(), { dateStyle: "full", timeStyle: "medium" }),
+        timeIn: (d, tz) => ({
+          time: formatTime(d, { lang: lang(), timeZone: tz }),
+          date: formatDate(d, "gregory", lang(), { weekday: "short", month: "short", day: "numeric", timeZone: tz }),
+          offset: timeZoneOffsetLabel(tz, d),
+        }),
+      }).map((a) => ({ type: "calc", title: a.title, sub: `${a.sub} · ${t("search.calcHint")}`, copy: a.copy, icon: INSTANT_ICONS[a.kind] || "calc", swatch: a.swatch, weak: a.weak }))
+    : [];
+  out.push(...instants.filter((a) => !a.weak));
+
   const linkMatches = s.sources.links
     ? getLinks()
         .groups.filter((g) => g.enabled)
@@ -143,6 +159,7 @@ async function collect(raw) {
 
   const engine = engineById(app.settings, s.engine);
   out.push({ type: "search", engine, query, title: engine.id === "default" ? t("search.searchWeb", { q: query }) : t("search.searchWith", { engine: engine.name, q: query }), hint: "↵" });
+  out.push(...instants.filter((a) => a.weak));
 
   if (s.sources.commands) {
     const cmds = commandsProvider()
@@ -242,7 +259,8 @@ function render() {
     }
     const i = idx;
     const iconEl = h("span", { class: "result-icon" });
-    if (item.fav) iconEl.appendChild(faviconIcon(item.fav));
+    if (item.swatch) iconEl.appendChild(h("span", { class: "swatch-dot", style: { background: item.swatch } }));
+    else if (item.fav) iconEl.appendChild(faviconIcon(item.fav));
     else if (item.type === "search") {
       if (item.engine.id === "default" || !item.engine.url) iconEl.appendChild(icon("search", 16));
       else iconEl.appendChild(faviconIcon(engineHome(item.engine)));
