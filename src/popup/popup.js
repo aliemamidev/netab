@@ -12,6 +12,7 @@ import { loadLinks, addLinkToGroup } from "../lib/config.js";
 import { toast, openMenu, formDialog } from "../lib/ui.js";
 import { addReadLater } from "../newtab/widgets/readlater.js";
 import { addTask } from "../newtab/widgets/todo.js";
+import { showQrDialog } from "../lib/qr-dialog.js";
 
 const $ = (id) => document.getElementById(id);
 let settings;
@@ -42,7 +43,7 @@ async function renderPage() {
   $("pageTitle").textContent = tab?.title || t("popup.noPage");
   $("pageHost").textContent = ok ? hostname(url) : t("popup.notSavable");
   setFavicon($("pageFav"), ok ? url : "https://netab.local/", 32);
-  for (const id of ["saveLinkBtn", "readLaterBtn", "copyBtn"]) $(id).disabled = !ok;
+  for (const id of ["saveLinkBtn", "readLaterBtn", "copyBtn", "qrBtn"]) $(id).disabled = !ok;
   if (!ok) return;
   const rl = await getList(KEYS.readLater);
   if (rl.some((x) => x.url === url && !x.done)) markDone($("readLaterBtn"), t("popup.saved"));
@@ -232,18 +233,18 @@ async function main() {
   $("settingsBtn").onclick = () => openDashboard("?settings=general");
   $("todayBtn").onclick = () => openDashboard();
   $("rlBtn").onclick = () => openDashboard();
-  $("sidePanelBtn").onclick = async () => {
-    try {
-      const win = await chrome.windows.getCurrent();
-      await chrome.sidePanel.open({ windowId: win.id });
-      window.close();
-    } catch {
-      toast(t("common.error"), { kind: "error" });
-    }
+  const windowId = isExtension ? (await chrome.windows.getCurrent()).id : 0;
+  $("sidePanelBtn").onclick = () => {
+    // Must be called synchronously inside the click so Chrome sees the user gesture.
+    chrome.sidePanel
+      .open({ windowId })
+      .then(() => window.close())
+      .catch(() => toast(t("common.error"), { kind: "error" }));
   };
   $("saveLinkBtn").onclick = saveLink;
   $("readLaterBtn").onclick = readLater;
   $("copyBtn").onclick = (e) => copyMenu(e.currentTarget);
+  $("qrBtn").onclick = () => showQrDialog(cleanUrl(tab.url), { title: tab.title || t("qr.title") });
   $("focusToggle").onclick = () => focus("toggle");
   $("focusReset").onclick = () => focus("reset");
   $("focusSkip").onclick = () => focus("skip");

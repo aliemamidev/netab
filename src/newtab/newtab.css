@@ -432,11 +432,11 @@ main {
   color: var(--faint);
   font-size: 0.72rem;
 }
-.result.calc .result-title {
+.result.result-calc .result-title {
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
 }
-.result.calc .result-icon {
+.result.result-calc .result-icon {
   background: rgb(var(--accent-rgb) / 0.16);
   color: var(--accent);
 }

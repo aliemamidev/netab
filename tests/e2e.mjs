@@ -191,16 +191,16 @@ try {
   await step("search: calculator, units, bangs, commands, top hit", async () => {
     await page.click("#searchInput");
     await page.fill("#searchInput", "12*(4+5)");
-    await page.waitForSelector(".result.calc");
-    assert.match(await page.textContent(".result.calc .result-title"), /108/);
+    await page.waitForSelector(".result.result-calc");
+    assert.match(await page.textContent(".result.result-calc .result-title"), /108/);
     await page.fill("#searchInput", "10 km to mi");
-    await page.waitForFunction(() => /6\.21/.test(document.querySelector(".result.calc .result-title")?.textContent || ""));
+    await page.waitForFunction(() => /6\.21/.test(document.querySelector(".result.result-calc .result-title")?.textContent || ""));
     await page.fill("#searchInput", "!gh netab");
     await page.waitForFunction(() => document.querySelector("#bangChip")?.textContent === "GitHub");
     await page.fill("#searchInput", "git");
     await page.waitForFunction(() => document.querySelector(".result .result-hint")?.textContent === "Top hit");
     await page.fill("#searchInput", ">tab");
-    await page.waitForSelector(".result.command");
+    await page.waitForSelector(".result.result-command");
     if (SCREENS) {
       await page.fill("#searchInput", "15% of 80");
       await wait(300);
@@ -216,6 +216,18 @@ try {
     await page.fill('.dialog-card input[name="label"]', "Chrome Docs");
     await page.click(".dialog-footer .btn-primary");
     await page.waitForFunction(() => [...document.querySelectorAll(".tile-label")].some((x) => x.textContent === "Chrome Docs"));
+  });
+
+  await step("QR code via command palette", async () => {
+    await page.click("#searchInput");
+    await page.fill("#searchInput", ">qr");
+    await page.waitForSelector(".result.result-command");
+    await page.keyboard.press("Enter");
+    await page.fill('.dialog-card textarea[name="text"]', "https://github.com/aliemamidev/netab");
+    await page.click(".dialog-footer .btn-primary");
+    await page.waitForSelector(".qr-svg path");
+    if (SCREENS) await page.screenshot({ path: `${shotsDir}/qr.jpg`, type: "jpeg", quality: 84 });
+    await page.keyboard.press("Escape");
   });
 
   await step("widgets gallery toggles", async () => {
@@ -319,6 +331,8 @@ try {
     await popup.goto(`${base}/popup/popup.html`);
     await popup.waitForSelector(".p-tool");
     if (SCREENS) await popup.screenshot({ path: `${shotsDir}/popup.jpg`, type: "jpeg", quality: 84 });
+    // The popup opened as a tab sees itself as the current page, which can't be saved.
+    assert.equal(await popup.isDisabled("#qrBtn"), true);
     await popup.locator(".p-tool").nth(3).click(); // save session
     await wait(600);
     const sessions = await popup.evaluate(async () => (await chrome.storage.local.get("netab.sessions.v1"))["netab.sessions.v1"]);

@@ -19,6 +19,8 @@ import { runTabAction } from "./widgets/sessions.js";
 import { hasFeature, getWeather, weatherInfo } from "../lib/net.js";
 import { dialog, dialogOpen, toast, closeMenu } from "../lib/ui.js";
 import { WIDGETS } from "./widgets/index.js";
+import { showQrDialog } from "../lib/qr-dialog.js";
+import { formDialog } from "../lib/ui.js";
 
 // ---------------------------------------------------------------------------
 // Commands (">" in the search box)
@@ -48,6 +50,7 @@ function commands() {
     cmd("merge", t("tabs.merge"), "merge", () => runTabAction("merge"), "windows"),
     cmd("sidepanel", t("about.kSidePanel"), "panel", openSidePanel, "side panel"),
     cmd("backup", t("data.exportBtn"), "download", exportBackup, "export backup"),
+    cmd("qr", t("cmd.qr"), "qr", makeQr, "qr code phone share"),
     cmd("downloads", t("cmd.downloads"), "download", chromePage("chrome://downloads"), "chrome"),
     cmd("history", t("cmd.history"), "history", chromePage("chrome://history"), "chrome"),
     cmd("bookmarks", t("cmd.bookmarks"), "bookmark", chromePage("chrome://bookmarks"), "chrome"),
@@ -58,10 +61,18 @@ function commands() {
   ];
 }
 
-async function openSidePanel() {
-  if (!isExtension || !chrome.sidePanel?.open) return toast(t("tabs.extOnly"));
-  const win = await chrome.windows.getCurrent();
-  await chrome.sidePanel.open({ windowId: win.id }).catch(() => toast(t("common.error")));
+async function makeQr() {
+  const v = await formDialog({ title: t("cmd.qr"), fields: [{ name: "text", label: t("qr.prompt"), type: "textarea", rows: 3, required: true, autofocus: true, wide: true }], okLabel: t("qr.title") });
+  if (v?.text) showQrDialog(v.text);
+}
+
+let currentWindowId = null;
+if (isExtension && chrome.windows) chrome.windows.getCurrent().then((w) => (currentWindowId = w.id)).catch(() => {});
+
+function openSidePanel() {
+  if (!isExtension || !chrome.sidePanel?.open || currentWindowId === null) return toast(t("tabs.extOnly"));
+  // Called straight from the click/keypress so the user gesture is preserved.
+  return chrome.sidePanel.open({ windowId: currentWindowId }).catch(() => toast(t("common.error")));
 }
 
 async function ensureWidget(id) {

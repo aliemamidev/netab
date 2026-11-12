@@ -250,7 +250,7 @@ function render() {
     const el = h(
       "button",
       {
-        class: `result ${item.type} ${i === active ? "active" : ""}`,
+        class: `result result-${item.type} ${i === active ? "active" : ""}`,
         type: "button",
         role: "option",
         id: `result-${i}`,

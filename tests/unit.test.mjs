@@ -10,6 +10,7 @@ import { looksLikeUrl, normalizeUrl, hostMatches, toLatinDigits, deepMerge, host
 import { normalizeSettings, DEFAULT_SETTINGS, WIDGET_IDS } from "../src/lib/storage.js";
 import { normalizeLinks, normalizeMedia, fileKind } from "../src/lib/config.js";
 import { quoteOfDay, QUOTES } from "../src/lib/quotes.js";
+import { encodeQR } from "../src/lib/qr.js";
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 
@@ -196,6 +197,32 @@ test("i18n picks singular forms and Persian digits", async () => {
   assert.equal(digits("25:00"), "۲۵:۰۰");
   setLang("en");
   assert.equal(digits("25:00"), "25:00");
+});
+
+test("QR encoder: sizes, finder patterns, versions and capacity", () => {
+  const small = encodeQR("HELLO", "M");
+  assert.equal(small.version, 1);
+  assert.equal(small.size, 21);
+  // Finder pattern corners: dark 7×7 ring with light separator.
+  for (const [x, y] of [
+    [0, 0],
+    [small.size - 7, 0],
+    [0, small.size - 7],
+  ]) {
+    assert.equal(small.modules[y][x], true);
+    assert.equal(small.modules[y + 1][x + 1], false);
+    assert.equal(small.modules[y + 3][x + 3], true);
+  }
+  // Dark module and timing pattern.
+  assert.equal(small.modules[small.size - 8][8], true);
+  for (let i = 8; i < small.size - 8; i += 1) assert.equal(small.modules[6][i], i % 2 === 0);
+  // Longer data picks a bigger version (with version info from v7 up).
+  const long = encodeQR("https://example.com/" + "a".repeat(200), "M");
+  assert.ok(long.version >= 7);
+  assert.equal(long.size, long.version * 4 + 17);
+  // UTF-8 (Persian) works and output is deterministic.
+  assert.deepEqual(encodeQR("سلام", "Q").modules, encodeQR("سلام", "Q").modules);
+  assert.throws(() => encodeQR("x".repeat(5000), "H"));
 });
 
 test("quotes are stable per day", () => {
