@@ -45,8 +45,8 @@ export default {
     }
 
     const chips = h("div", { class: "note-chips" });
-    const titleInput = h("input", { class: "note-title", type: "text", placeholder: t("notes.titlePlaceholder"), maxlength: 120 });
-    const area = h("textarea", { class: "note-area", placeholder: t("notes.placeholder"), spellcheck: "true" });
+    const titleInput = h("input", { class: "note-title", type: "text", dir: "auto", placeholder: t("notes.titlePlaceholder"), maxlength: 120 });
+    const area = h("textarea", { class: "note-area", dir: "auto", placeholder: t("notes.placeholder"), spellcheck: "true" });
     const status = h("span", { class: "note-status" });
     const footer = h("div", { class: "widget-footer" }, status);
     const editor = h("div", { class: "note-editor" }, titleInput, area, footer);

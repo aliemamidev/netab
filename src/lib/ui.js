@@ -18,7 +18,7 @@ function toastHost() {
 
 export function toast(message, { action, actionLabel, timeout = 3800, kind = "info" } = {}) {
   const host = toastHost();
-  const el = h("div", { class: `toast toast-${kind}` }, h("span", { class: "toast-text" }, message));
+  const el = h("div", { class: `toast toast-${kind}` }, h("span", { class: "toast-text", dir: "auto" }, message));
   let timer = null;
   const close = () => {
     clearTimeout(timer);

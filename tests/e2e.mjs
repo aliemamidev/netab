@@ -393,6 +393,37 @@ try {
   await step("no runtime errors", async () => {
     assert.deepEqual(errors, []);
   });
+
+  await step("upgrade from NeTab 2.x keeps links and wallpapers", async () => {
+    const legacy = await pw.chromium.launchPersistentContext(path.join(tmp, "profile-legacy"), {
+      channel: "chromium",
+      headless: true,
+      viewport: { width: 1280, height: 800 },
+      args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`],
+    });
+    try {
+      let [lsw] = legacy.serviceWorkers();
+      if (!lsw) lsw = await legacy.waitForEvent("serviceworker", { timeout: 15000 });
+      await wait(600);
+      for (const p of legacy.pages()) if (p.url().includes("welcome")) await p.close();
+      await lsw.evaluate(async () => {
+        await chrome.storage.local.clear();
+        await chrome.storage.local.set({
+          "netab.links.v2": { title: "My Links", groups: [{ id: "uni", name: "University", icon: "🎓", enabled: true, links: [{ id: "l1", label: "Portal", url: "https://example.edu/", enabled: true }] }] },
+          "netab.media.v2": { settings: { mode: "photos", shadeStrength: 50 }, photos: [{ id: "p1", source: "packaged", kind: "photo", name: "Aurora", path: "media/samples/photos/aurora.svg", enabled: true }], videos: [] },
+          "netab.ui.v2": { openFirstGroup: true },
+        });
+      });
+      const p = watch(await legacy.newPage(), "legacy");
+      await p.goto(`chrome-extension://${new URL(lsw.url()).host}/src/newtab/newtab.html`);
+      await p.waitForSelector(".tile");
+      assert.equal(await p.locator(".dialog-card").count(), 0, "onboarding should be skipped for 2.x users");
+      assert.match(await p.textContent("#linksTabs"), /University/);
+      await p.waitForFunction(() => document.getElementById("bgImage").classList.contains("on"));
+    } finally {
+      await legacy.close();
+    }
+  });
 } catch (error) {
   exitCode = 1;
   console.error(error);

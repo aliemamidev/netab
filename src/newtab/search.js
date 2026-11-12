@@ -280,7 +280,7 @@ function render() {
         onclick: (e) => execute(item, e.ctrlKey || e.metaKey || e.button === 1),
       },
       iconEl,
-      h("span", { class: "result-text" }, h("span", { class: "result-title" }, item.title), item.sub ? h("span", { class: "result-sub" }, item.sub) : null),
+      h("span", { class: "result-text" }, h("span", { class: "result-title", dir: "auto" }, item.title), item.sub ? h("span", { class: "result-sub" }, item.sub) : null),
       item.hint ? h("span", { class: "result-hint" }, item.hint) : null,
     );
     resultsEl.appendChild(el);

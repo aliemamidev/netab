@@ -49,7 +49,7 @@ export default {
             "aria-label": today.text,
             onchange: (e) => set(KEYS.daily, { ...today, done: e.target.checked }),
           }),
-          h("span", { class: "daily-text" }, today.text),
+          h("span", { class: "daily-text", dir: "auto" }, today.text),
           h("button", { class: "icon-btn sm", type: "button", title: t("common.clear"), onclick: () => set(KEYS.daily, null) }, icon("x", 14)),
         ),
         today.done ? h("div", { class: "daily-cheer" }, t("daily.cheer")) : null,

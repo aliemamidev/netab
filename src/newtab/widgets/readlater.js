@@ -99,7 +99,7 @@ export default {
                 },
               },
               h("span", { class: "rl-icon" }, img),
-              h("span", { class: "rl-text" }, h("strong", {}, item.title || item.url), h("small", {}, `${hostname(item.url)} · ${relativeTime(item.addedAt, lang())}`)),
+              h("span", { class: "rl-text" }, h("strong", { dir: "auto" }, item.title || item.url), h("small", {}, `${hostname(item.url)} · ${relativeTime(item.addedAt, lang())}`)),
             ),
             h(
               "button",

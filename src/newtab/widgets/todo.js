@@ -135,7 +135,7 @@ export default {
 
     function row({ task, index }) {
       const due = dueLabel(task.due);
-      const text = h("span", { class: "todo-text", title: t("todo.editHint") }, task.text);
+      const text = h("span", { class: "todo-text", dir: "auto", title: t("todo.editHint") }, task.text);
       text.addEventListener("dblclick", () => editInline(text, task));
       const li = h(
         "li",
